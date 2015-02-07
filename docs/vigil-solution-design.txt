@@ -1,0 +1,54 @@
+- read the configuration from S3
+
+- s3 bucket
+- s3 key
+- aws access key
+- aws secret key
+
+- add site
+- modify site
+- delete site
+
+- each site
+-- name
+-- DNS names
+-- resolver (defaults to 8.8.8.8)
+-- additional naxsi rules
+-- gateway timeout error pages (url)
+-- waf error page (url)
+
+-----------------------------------------------
+
+we start a http server
+* one page basic auth (username admin / password instanceId)
+* config URL
+
+we start a config manager
+* new config detected 
+** => we delete the old sites
+** => we create the new site configs
+** => we call sudo service nginx reload
+** => we send a phoneHome email
+
+-----------------------------------------------
+
+vhosts:
+  - name: pre.buro247.com.au
+    dnsNames: [pre.buro247.com.au, m.pre.buro247.com.au]
+    origins: [pre.buro247.com.au]
+    resolver: 8.8.8.8
+	workerProcesses: 4
+	workerConnections: 768
+	clientMaxBodySize: 128m;
+    wafErrorURL: http://nlm-upload.s3.amazonaws.com/error-page-403.html
+    gatewayTimeoutURL: http://nlm-upload.s3.amazonaws.com/error-page-5xx.html
+	naxsiAdditionalRules: [],
+	gzip: on
+	
+
+phoneHome:
+  from: test@yoda.com
+  to: D-1l2mhwm@maildrop.cc
+  service: mailgun
+  user: postmaster@yoda.com
+  pass: 3kh9umujora5
