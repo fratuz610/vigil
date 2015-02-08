@@ -9,11 +9,11 @@ var exec = require('child_process').exec;
 var templateFile = "templates/nginx.conf.mustache";
 var nginxOutputFile = "/etc/nginx/nginx.conf";
 
-module.exports = function(phoneHomeService) {
+module.exports = function() {
 
 	var _self = this;
 
-	this.update = function(config, callback) {
+	this.update = function(newConfig, callback) {
 
 		// we got a new configuration
 
@@ -26,7 +26,7 @@ module.exports = function(phoneHomeService) {
 		}
 
 		// we run the template with a combination of data + variables
-		var output = Mustache.render(templateContent, config);
+		var output = Mustache.render(templateContent, newConfig);
 
 		// we output the content to the nginx configuration file
 		try {
@@ -35,17 +35,26 @@ module.exports = function(phoneHomeService) {
 			return callback(new Error("Error writing nginx configurtion file: '" + nginxOutputFile + "': " + err));
 		}
 
-		// we reload the config
-		exec("service nginx reload 2>&1", function (error, stdout, stderr) {
+		// we reload the newConfig
+		exec("service nginx configtest 2>&1", function (error, stdout, stderr) {
 
 			if(error)
-				callback(new Error("Unable to reload nginx service: " + error));
+				callback(new Error("nginx config test failed: " + error + " output: " +stdout));
 
-			callback();
+			console.log("nginxService: nginx config test success");
+
+			// we reload the newConfig
+			exec("service nginx reload 2>&1", function (error, stdout, stderr) {
+
+				if(error)
+					callback(new Error("Unable to reload nginx service: " + error + " output: " + stdout));
+
+				callback();
+			});
 		});
 
+		
+
 	};
-
-
 
 };

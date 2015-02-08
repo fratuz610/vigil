@@ -35,7 +35,7 @@ we start a config manager
 vhosts:
   - name: pre.buro247.com.au
     dnsNames: [pre.buro247.com.au, m.pre.buro247.com.au]
-    origins: [pre.buro247.com.au]
+    origins: [54.66.204.32]
     resolver: 8.8.8.8
 	workerProcesses: 4
 	workerConnections: 768
@@ -47,8 +47,8 @@ vhosts:
 	
 
 phoneHome:
-  from: test@yoda.com
-  to: D-1l2mhwm@maildrop.cc
+  from: vigil@stefanofratini.it
+  to: mail@stefanofratini.it
   service: mailgun
-  user: postmaster@yoda.com
-  pass: 3kh9umujora5
+  user: postmaster@sandbox55ac69effb744693885c93e60a472b2b.mailgun.org
+  pass: 1m92oep9kkj6

@@ -1,8 +1,11 @@
 /*jslint node: true */
 "use strict";
 
+var fs = require('fs');
 var yaml = require('js-yaml');
 var validate = require("validate.js");
+var aws = require('aws-sdk');
+
 var validation = require("./validation.js");
 
 var _localConfig;
@@ -11,7 +14,9 @@ var _localConfigLastModified;
 var _remoteConfig;
 var _remoteConfigEtag;
 
-module.exports = function(nginxManager) {
+var _remoteBusy = false;
+
+module.exports = function(nginxService, phoneHome) {
 	
 	this.updateLocal = function() {
 
@@ -22,7 +27,7 @@ module.exports = function(nginxManager) {
 			return console.error("Config: Unable to read config file last modified date because: " + e);
 		}
 
-		if(_localConfigLastModified && newLastModified < _localConfigLastModified)
+		if(_localConfigLastModified && newLastModified <= _localConfigLastModified)
 			return;
 
 		console.log("Config: reading local configuration");
@@ -49,23 +54,28 @@ module.exports = function(nginxManager) {
 		if(validationResults)
 			return console.error("Config: Unable to validate configuration because: " + validationResults.join(","));
 
-		console.log("Config: local configuration updated, reading remote one");
+		console.log("Config: local configuration updated");
 
 		// we are safe now
 		_localConfig = possibleLocalConfig;
-
-		setImmediate(_self.updateRemote());
+		_localConfigLastModified = newLastModified;
 	};
 
 	this.updateRemote = function() {
 
-		aws.config.update({ 
-			accessKeyId: _localConfig.accessKey, 
-			secretAccessKey: _localConfig.secretKey,
+		// if there is no local configuration, we can't read the remote one
+		if(!_localConfig || _remoteBusy)
+			return;
+
+		_remoteBusy = true;
+
+		//console.log("Config: updating remote configuration");
+
+		var s3 = new aws.S3({
+			accessKeyId: _localConfig.awsAccessKey, 
+			secretAccessKey: _localConfig.awsSecretKey,
 			sslEnabled: false
 		});
-
-		var s3 = new aws.S3(); 
 
 		var params = {
 			Bucket: _localConfig.s3Bucket,
@@ -74,8 +84,14 @@ module.exports = function(nginxManager) {
 
 	  s3.getObject(params, function(err, data) { 
 
+	  	_remoteBusy = false;
+
 	  	if(err)
 	  		return console.error("Config: Unable to update remote config: " + err);
+
+	  	// we check if the ETag matches
+	  	if(_remoteConfigEtag && _remoteConfigEtag === data.ETag)
+	  		return;
 
 			console.log("Config: Successfully read remote config file " + data.Body.length + " bytes");
 
@@ -98,7 +114,7 @@ module.exports = function(nginxManager) {
 				var validationResults = validate(vhost, validation.vhostConstraints, {flatten:true});
 
 				if(validationResults)
-					vhostError = "Config: Unable to validate remote configuration because: " + validationResults.join(","));
+					vhostError = "Config: Unable to validate remote configuration because: " + validationResults.join(",");
 			});
 
 	  	if(vhostError)
@@ -106,15 +122,30 @@ module.exports = function(nginxManager) {
 
 	  	// we are safe now
 	  	_remoteConfig = possibleRemoteConfig;
+	  	_remoteConfigEtag = data.ETag
 
 	  	console.log("Config: remote configuration updated, updating nginx");
 
-	  	nginxManager.update(_remoteConfig);
+	  	// we update the configuration
+	  	nginxService.update(_remoteConfig, function(error) {
+
+	  		if(error)
+	  			return phoneHome.phoneHome(_remoteConfig.phoneHome, "ERROR", "Unable to update nginx configuration: " + error)
+
+	  		return phoneHome.phoneHome(_remoteConfig.phoneHome, "NEW CONFIG", "Nginx configuration updated\n\n" + yaml.safeDump(_remoteConfig));
+	  	});
 
 	  });
 	};
 
 	this.getLocal = function() { return _localConfig; };
 	this.getRemote = function() { return _remoteConfig; };
+
+	// we update the local configuration every 10 seconds
+	setInterval(this.updateLocal, 10000);
+	setImmediate(this.updateLocal);
+
+	// we update the remote configuration every 10 seconds
+	setInterval(this.updateRemote, 10000);
 
 }

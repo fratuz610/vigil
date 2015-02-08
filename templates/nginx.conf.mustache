@@ -62,7 +62,7 @@ http {
 	##
 
 	{{#vhosts}}
-	upstream {{siteName}} {
+	upstream {{name}} {
 		{{#origins}}
 		server {{.}};
 		{{/origins}}
@@ -79,8 +79,8 @@ http {
 	 
 	  server_name {{#dnsNames}} {{&.}}{{/dnsNames}};
 	 
-	  access_log /var/log/{{siteName}}.access;
-	  error_log /var/log/{{siteName}}.error error;
+	  access_log /var/log/{{name}}.access;
+	  error_log /var/log/{{name}}.error error;
 	  
 	  resolver {{&resolver}}{{^resolver}}8.8.4.4{{/resolver}};
 
@@ -92,11 +92,29 @@ http {
 	  location / {	
 			proxy_set_header Host $host;
 			proxy_set_header X-Real-IP $remote_addr;
-			proxy_pass http://{{siteName}};
+			proxy_pass http://{{name}};
 			proxy_http_version 1.1;
 			
-			# default set of rules
-			include /etc/nginx/naxsi.rules;
+			## Naxsi rules
+			#LearningMode;
+			SecRulesEnabled;
+			#SecRulesDisabled;
+			DeniedUrl "/RequestDenied";
+
+			## check rules
+			CheckRule "$SQL >= 10" BLOCK;
+			CheckRule "$RFI >= 8" BLOCK;
+			CheckRule "$TRAVERSAL >= 4" BLOCK;
+			CheckRule "$EVADE >= 4" BLOCK;
+			CheckRule "$XSS >= 8" BLOCK;
+
+			## Cookie relaxation rules
+			BasicRule wl:1314 "mz:$HEADERS_VAR:Cookie";
+			BasicRule wl:1315 "mz:$HEADERS_VAR:Cookie";
+			BasicRule wl:1013 "mz:$HEADERS_VAR:Cookie";
+			BasicRule wl:1000 "mz:$HEADERS_VAR:Cookie";
+			BasicRule wl:1015 "mz:$HEADERS_VAR:Cookie";
+			BasicRule wl:1306 "mz:$HEADERS_VAR:Cookie";
 
 			# additional naxsi rules
 			{{#naxsiAdditionalRules}}{{&.}}{{/naxsiAdditionalRules}}
@@ -107,11 +125,11 @@ http {
 	  }
 
 	  location =/403.html {
-			proxy_pass {{wafErrorURL}};
+			proxy_pass {{&wafErrorURL}};
 	  }
 
 	  location =/504.html {
-			proxy_pass {{gatewayTimeoutURL}};
+			proxy_pass {{&gatewayTimeoutURL}};
 	  }
 	 
 	  location ~ /\.ht {

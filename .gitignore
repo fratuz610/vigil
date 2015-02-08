@@ -1,3 +1,6 @@
 /node_modules
 /.vagrant
 /Vagrantfile
+/config.yaml
+/remoteConfig.yaml
+/docs/_vigil-aws-credentials.txt
