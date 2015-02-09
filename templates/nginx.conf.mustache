@@ -79,8 +79,8 @@ http {
 	 
 	  server_name {{#dnsNames}} {{&.}}{{/dnsNames}};
 	 
-	  access_log /var/log/{{name}}.access;
-	  error_log /var/log/{{name}}.error error;
+	  access_log /var/log/nginx/{{name}}.access;
+	  error_log /var/log/nginx/{{name}}.error error;
 	  
 	  resolver {{&resolver}}{{^resolver}}8.8.4.4{{/resolver}};
 
@@ -117,15 +117,30 @@ http {
 			BasicRule wl:1306 "mz:$HEADERS_VAR:Cookie";
 
 			# additional naxsi rules
-			{{#naxsiAdditionalRules}}{{&.}}{{/naxsiAdditionalRules}}
+			{{#waf}}
+				{{#additionalRules}}{{&.}}{{/additionalRules}}
+			{{/waf}}
 	  }
+
+	  {{#waf}}
+  	{{#excludePaths}}
+  	location {{&.}} {
+  		proxy_set_header Host $host;
+			proxy_set_header X-Real-IP $remote_addr;
+			proxy_pass http://{{name}};
+			proxy_http_version 1.1;
+  	}
+  	{{/excludePaths}}
+	  {{/waf}}
 	  
 	  location /RequestDenied {
 			return 403;
 	  }
 
 	  location =/403.html {
-			proxy_pass {{&wafErrorURL}};
+	  	{{#waf}}
+			proxy_pass {{&triggerURL}};
+			{{/waf}}
 	  }
 
 	  location =/504.html {

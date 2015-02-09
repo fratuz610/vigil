@@ -115,6 +115,7 @@ module.exports = function(nginxService, phoneHome) {
 
 				if(validationResults)
 					vhostError = "Config: Unable to validate remote configuration because: " + validationResults.join(",");
+
 			});
 
 	  	if(vhostError)
@@ -122,7 +123,7 @@ module.exports = function(nginxService, phoneHome) {
 
 	  	// we are safe now
 	  	_remoteConfig = possibleRemoteConfig;
-	  	_remoteConfigEtag = data.ETag
+	  	_remoteConfigEtag = data.ETag;
 
 	  	console.log("Config: remote configuration updated, updating nginx");
 
@@ -130,9 +131,9 @@ module.exports = function(nginxService, phoneHome) {
 	  	nginxService.update(_remoteConfig, function(error) {
 
 	  		if(error)
-	  			return phoneHome.phoneHome(_remoteConfig.phoneHome, "ERROR", "Unable to update nginx configuration: " + error)
+	  			return phoneHome.phoneHome(_remoteConfig.phoneHome, "ERROR", "Unable to update nginx configuration: " + error);
 
-	  		return phoneHome.phoneHome(_remoteConfig.phoneHome, "NEW CONFIG", "Nginx configuration updated\n\n" + yaml.safeDump(_remoteConfig));
+	  		return phoneHome.phoneHome(_remoteConfig.phoneHome, "NEW CONFIG", "Nginx configuration updated\n\n" + yaml.safeDump(_remoteConfig.vhosts));
 	  	});
 
 	  });
@@ -148,4 +149,4 @@ module.exports = function(nginxService, phoneHome) {
 	// we update the remote configuration every 10 seconds
 	setInterval(this.updateRemote, 10000);
 
-}
+};
