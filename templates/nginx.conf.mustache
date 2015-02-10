@@ -116,6 +116,12 @@ http {
 			BasicRule wl:1015 "mz:$HEADERS_VAR:Cookie";
 			BasicRule wl:1306 "mz:$HEADERS_VAR:Cookie";
 
+			# allow http:// in a cookie
+			BasicRule wl:1100 "mz:$HEADERS_VAR:Cookie";
+
+			# allow https:// in a cookie
+			BasicRule wl:1101 "mz:$HEADERS_VAR:Cookie";
+
 			# additional naxsi rules
 			{{#waf}}
 				{{#additionalRules}}{{&.}}{{/additionalRules}}
