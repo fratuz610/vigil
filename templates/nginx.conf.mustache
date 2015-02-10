@@ -26,17 +26,11 @@ http {
 	include /etc/nginx/mime.types;
 	default_type application/octet-stream;
 
-	##
 	# Logging Settings
-	##
-
 	access_log /var/log/nginx/access.log;
 	error_log /var/log/nginx/error.log;
 
-	##
 	# Gzip Settings
-	##
-
 	gzip off;
 	gzip_disable "msie6";
 
@@ -47,20 +41,14 @@ http {
 	# gzip_http_version 1.1;
 	gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
-	##
-	# nginx-naxsi config
-	##
-	# Uncomment it if you installed nginx-naxsi
-	##
+	# nginx-naxsi core rules
 	
 	include /etc/nginx/naxsi_core.rules;
 
 	client_max_body_size {{&clientMaxBodySize}}{{^clientMaxBodySize}}128m{{/clientMaxBodySize}};
 	
-	##
 	# Upstreams configuration
-	##
-
+	
 	{{#vhosts}}
 	upstream {{name}} {
 		{{#origins}}
@@ -69,9 +57,7 @@ http {
 	}
 	{{/vhosts}}
 	
-	##
-	# Virtual Host Configs
-	##
+	# vhosts
 	
 	{{#vhosts}}
 
@@ -122,11 +108,8 @@ http {
 			# allow https:// in a cookie
 			BasicRule wl:1101 "mz:$HEADERS_VAR:Cookie";
 
-			# allow [ a bit everywhere
-			BasicRule wl:1310 "mz:BODY|URL|ARGS|$HEADERS_VAR:Cookie";
-
-			# allow ] a bit everywhere
-			BasicRule wl:1311 "mz:BODY|URL|ARGS|$HEADERS_VAR:Cookie";
+			# allow [ ] a bit everywhere
+			BasicRule wl:1310,1311;
 
 			# additional naxsi rules
 			{{#waf}}
