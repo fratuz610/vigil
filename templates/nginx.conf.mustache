@@ -142,7 +142,7 @@ http {
 	  	proxy_method GET;
 			proxy_pass {{&triggerURL}};
 			proxy_pass_request_headers off;
-			proxy_pass_request_boxy off;
+			proxy_pass_request_body off;
 			{{/waf}}
 	  }
 
@@ -150,7 +150,7 @@ http {
 	  	proxy_method GET;
 			proxy_pass {{&gatewayTimeoutURL}};
 			proxy_pass_request_headers off;
-			proxy_pass_request_boxy off;
+			proxy_pass_request_body off;
 	  }
 	 
 	  location ~ /\.ht {
