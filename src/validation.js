@@ -21,6 +21,9 @@ module.exports.localConfigConstraints = {
 
 // valid submission constraint
 module.exports.remoteConfigConstraints = {
+	workerProcesses: {numericality: {onlyInteger: true, greaterThanOrEqualTo: 1}},
+	workerConnections: {numericality: {onlyInteger: true, greaterThanOrEqualTo: 1}},
+	clientMaxBodySize: {format: /(\d+)([MKGT])/i},
 	vhosts: {presence:true},
 	phoneHome: {presence:true},
 	"phoneHome.from": { presence:true, email: true},
@@ -36,9 +39,6 @@ module.exports.vhostConstraints = {
 	dnsNames: {presence:true, array:true},
 	origins: { presence:true, array:true},
 	resolver: { presence:true, format:validIPRegex},
-	workerProcesses: {numericality: {onlyInteger: true, greaterThanOrEqualTo: 1}},
-	workerConnections: {numericality: {onlyInteger: true, greaterThanOrEqualTo: 1}},
-	clientMaxBodySize: {format: /(\d+)([MKGT])/i},
 	gzip: {format: /^(on|off)$/i},
 	gatewayTimeoutURL: {presence:true, format:validURLRegex },
 	waf: {presence:true},

@@ -1,8 +1,8 @@
 /*jslint node: true */
 "use strict";
 
-//var EventEmitter = require('events').EventEmitter;
-//var bus = Object.create(EventEmitter.prototype);
+// make sure we are running from the local folder
+process.chdir(__dirname);
 
 var Config = require('./src/config.js');
 var HttpService = require('./src/httpService.js');

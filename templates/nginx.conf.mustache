@@ -139,12 +139,18 @@ http {
 
 	  location =/403.html {
 	  	{{#waf}}
+	  	proxy_method GET;
 			proxy_pass {{&triggerURL}};
+			proxy_pass_request_headers off;
+			proxy_pass_request_boxy off;
 			{{/waf}}
 	  }
 
 	  location =/504.html {
+	  	proxy_method GET;
 			proxy_pass {{&gatewayTimeoutURL}};
+			proxy_pass_request_headers off;
+			proxy_pass_request_boxy off;
 	  }
 	 
 	  location ~ /\.ht {

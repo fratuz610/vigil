@@ -10,7 +10,8 @@
     "nodemailer": "*",
     "validate.js": "*",
     "yargs": "*",
-    "aws-sdk": "*"
+    "aws-sdk": "*",
+    "node-linux": "git+https://github.com/fratuz610/node-linux"
   },
   "devDependencies": {
     "express": "*",
