@@ -108,12 +108,11 @@ http {
 			# allow https:// in a cookie
 			BasicRule wl:1101 "mz:$HEADERS_VAR:Cookie";
 
-			# allow [ ] a bit everywhere
-			BasicRule wl:1310,1311;
-
 			# additional naxsi rules
 			{{#waf}}
-				{{#additionalRules}}{{&.}}{{/additionalRules}}
+			{{#additionalRules}}
+			{{&.}};
+			{{/additionalRules}}
 			{{/waf}}
 	  }
 
