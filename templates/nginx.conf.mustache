@@ -155,4 +155,9 @@ http {
 
 	{{/vhosts}}
 	
+	# catch all 403 when no server name matches
+	server {
+		server_name _;
+		return 403;
+	}
 }
